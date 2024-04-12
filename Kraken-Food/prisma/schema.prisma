@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model area {
+  area_id          Int     @id @default(autoincrement())
+  nombre           String? @db.VarChar(100)
+  tipo             String? @db.VarChar(50)
+  capacidad_maxima Int?
+  mesa             mesa[]
+}
+
+model bebida {
+  bebida_id   Int      @id @default(autoincrement())
+  nombre      String?  @db.VarChar(100)
+  descripcion String?
+  precio      Decimal? @db.Decimal(10, 2)
+}
+
+model cliente {
+  cliente_id Int        @id @default(autoincrement())
+  nombre     String?    @db.VarChar(100)
+  direccion  String?    @db.VarChar(200)
+  nit        String?    @db.VarChar(20)
+  encuesta   encuesta[]
+  queja      queja[]
+}
+
+model cuenta {
+  cuenta_id           Int         @id @default(autoincrement())
+  mesa_id             Int?
+  estado              String?     @db.VarChar(20)
+  fecha_hora_apertura DateTime?   @db.Timestamp(6)
+  fecha_hora_cierre   DateTime?   @db.Timestamp(6)
+  mesa                mesa?       @relation(fields: [mesa_id], references: [mesa_id], onDelete: NoAction, onUpdate: NoAction)
+  formapago           formapago[]
+  pedido              pedido[]
+}
+
+model encuesta {
+  encuesta_id             Int      @id @default(autoincrement())
+  cliente_id              Int?
+  calificacion_amabilidad Int?
+  calificacion_exactitud  Int?
+  cliente                 cliente? @relation(fields: [cliente_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model formapago {
+  forma_pago_id Int     @id @default(autoincrement())
+  descripcion   String? @db.VarChar(100)
+  cuenta_id     Int?
+  cuenta        cuenta? @relation(fields: [cuenta_id], references: [cuenta_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model mesa {
+  mesa_id   Int      @id @default(autoincrement())
+  area_id   Int?
+  capacidad Int?
+  estado    String?  @db.VarChar(20)
+  cuenta    cuenta[]
+  area      area?    @relation(fields: [area_id], references: [area_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model pedido {
+  pedido_id         Int       @id @default(autoincrement())
+  cuenta_id         Int?
+  fecha_hora_pedido DateTime? @db.Timestamp(6)
+  cuenta            cuenta?   @relation(fields: [cuenta_id], references: [cuenta_id], onDelete: NoAction, onUpdate: NoAction)
+  propina           propina[]
+}
+
+model plato {
+  plato_id    Int      @id @default(autoincrement())
+  nombre      String?  @db.VarChar(100)
+  descripcion String?
+  precio      Decimal? @db.Decimal(10, 2)
+}
+
+model propina {
+  propina_id Int      @id @default(autoincrement())
+  pedido_id  Int?
+  monto      Decimal? @db.Decimal(10, 2)
+  pedido     pedido?  @relation(fields: [pedido_id], references: [pedido_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model queja {
+  queja_id      Int       @id @default(autoincrement())
+  cliente_id    Int?
+  fecha_hora    DateTime? @db.Timestamp(6)
+  motivo        String?
+  clasificacion Int?
+  persona       String?   @db.VarChar(50)
+  plato_bebida  String?   @db.VarChar(100)
+  cliente       cliente?  @relation(fields: [cliente_id], references: [cliente_id], onDelete: NoAction, onUpdate: NoAction)
+}
